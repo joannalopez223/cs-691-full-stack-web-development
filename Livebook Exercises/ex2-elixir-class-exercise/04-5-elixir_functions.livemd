@@ -1,0 +1,155 @@
+# Elixir Functions and Control Flow
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.8.0"}
+])
+```
+
+## Anonymous Functions
+
+Functions are _first class citizens_ in Elixir, meaning that they can be assigned to variables, passed as arguments to other functions, and returned as the result from functions.
+
+An anonymous function is simply a function that is not given an explicit name. Anonymous functions are used extensively in Elixir, especially as callbacks where they are passed to another function as a parameter. Anonymous functions are also referred to as _lambdas_ ($\lambda$)
+
+```elixir
+# defining an anonynmous function and assigning it to a variable
+anon = fn x, y -> x * y end
+IO.inspect(anon)
+# calling the function
+anon.(10, 33)
+```
+
+Parentheses are optional however they are not recommended.
+
+**Exercise**: Write an anonymous function that takes three integers and returns the string "Your integers were 1,2, and 5" when called with those numbers.
+
+```elixir
+# Exercise
+```
+
+Lambdas can of course contain calls to named functions
+
+```elixir
+put = fn m -> IO.puts(m) end
+put.(12345)
+```
+
+Anonymous functions are frequently used as arguments to other functions
+
+```elixir
+Enum.map(["one", "three", "ten"], fn x -> String.upcase(x) end)
+```
+
+The capture operator & provides a shortcut to writing fn
+
+```elixir
+Enum.map(["one", "three", "ten"], &String.upcase(&1))
+```
+
+## Arity
+
+Function arity refers to the number of parameters required by a function. A function is uniquely defined by its module, name, and arity.
+
+Lower arity functions are typically implemented in terms of higher-arity versions of the same function.
+
+```elixir
+# example
+defmodule Multiplier do
+  def mult(a) do
+    mult(a, 1)
+  end
+
+  def mult(a, b) do
+    a * b
+  end
+end
+
+# Default params can be used to generate the above functions
+# def mult(a, b \\ 1)
+```
+
+## Pattern Matching in Functions
+
+```elixir
+defmodule ListDeleter do
+  def delete([element | list], element) do
+    list
+  end
+
+  def delete([other | list], element) do
+    [other | delete(list, element)]
+  end
+
+  def delete([], _element) do
+    []
+  end
+end
+
+ListDeleter.delete([1, 2, 3, 4], 3)
+```
+
+## The Pipe Operator
+
+The pipe operator |> is used extensively in Elixir to chain functions (referred to as pipelining).
+
+```elixir
+# without the pipe operator
+string = "My String"
+upcase_string = String.upcase(string)
+reverse_upcase = String.reverse(upcase_string)
+```
+
+```elixir
+# Using the pipe operator
+"My String" |> String.upcase() |> String.reverse()
+```
+
+```elixir
+# Standard formatting
+# Note - you must include the Kino library 
+# in order to have the output appear as it does below from the dbg statement
+"My String"
+|> String.upcase()
+|> String.reverse()
+|> dbg()
+```
+
+## Guard Conditions
+
+It is typical to use pattern matching to differentiate functions that have the same module/name/arity. In some circumastances, you need to have functions respond to aspects of what is passed in as parameters that pattern matching will not handle. This is where _guard conditions_ come in.
+
+```elixir
+# example from Elixir in Action
+defmodule TestNum do
+  def test(x) when x < 0 do
+    :negative
+  end
+
+  def test(0), do: :zero
+
+  def test(x) when x > 0 do
+    :positive
+  end
+end
+```
+
+Guards can be used in anonymous functions as well.
+
+```elixir
+anon = fn x when is_integer(x) -> x * 100 end
+```
+
+This works, but throws an error if invalid inputs given. The solution is to use multiple clauses.
+
+```elixir
+anon = fn
+  x, y when is_integer(x) and is_integer(y) ->
+    x * y
+
+  x, y when is_binary(x) or is_binary(y) ->
+    "You cannot use a string here"
+end
+
+anon.(1, "fred")
+```

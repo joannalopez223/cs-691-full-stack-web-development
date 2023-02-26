@@ -1,0 +1,179 @@
+# Class Exercise 1: Elixir - Data Types and Pattern Matching
+
+## Instructions
+
+To complete the problems, follow these steps:
+
+* Enter your solution in the code cell below the problem statement, or add a code cell if none is present.
+* Run the code to make sure it's correct.
+* After finishing all the problems, use the export function to save your work as a .livemd file.
+  * Be sure to select the option to include outputs when exporting.
+* Upload the saved .livemd file to the assignment on Canvas.
+
+In this exercise, you will need to call functions on Elixir modules. The syntax is straghtforward. Function calls on modules are simply the module name, a period, and the function name. For example, to duplicate a list using the `duplicate` function from the `List` module, you woud use `List.duplicate(list)`.
+
+For some of the exercises below, you will need to use the `List` and `Enum` modules.
+
+* List docs: https://hexdocs.pm/elixir/List.html
+* Enum docs: https://hexdocs.pm/elixir/Enum.html
+* Map docs: https://hexdocs.pm/elixir/Map.html
+
+## Lists
+
+`Lists` are a fundamental data structure in Elixir. Using https://hexdocs.pm/elixir/List.html as a reference if needed, complete the following exercises.
+
+<!-- livebook:{"break_markdown":true} -->
+
+1\. Convert the following nested list to a list with no nested elements and then find the 5th element
+
+```elixir
+m = [1, 2, 3, [4, 5, 6], [1, 1, 1], [1, 4, 5, [1, 2]]]
+```
+
+```elixir
+n = List.flatten(m)
+```
+
+```elixir
+[_, _, _, _, x, _, _, _, _, _, _, _, _, _] = n
+x
+```
+
+2\. Show four ways to retrieve the first value from the list `x = 5,6,"seven"` and assign it to the variable `first`.
+
+```elixir
+x = [5, 6, "seven"]
+```
+
+```elixir
+[head | tail] = x
+head
+```
+
+```elixir
+[a, b, c] = x
+a
+```
+
+```elixir
+[y, _, _] = x
+y
+```
+
+```elixir
+List.first(x)
+```
+
+## Maps
+
+3\. Create a map to hold the following data, assigning it to the variable `mp`:
+
+* name equal to "Fred"
+* age equal to 10
+* occupation equal to "data scientist and chatGPT expert"
+
+_All of the keys in the map should be atoms._
+
+```elixir
+# Create the map and assign it to the variable p3
+mp = %{name: "Fred", age: 10, occupation: "data scientist and chatGPT expert"}
+```
+
+4\. Use pattern matching to get the name from the map and assign it to the variable `new_name`
+
+```elixir
+y = %{age: 10, name: "Fred", occupation: "data scientist and chatGPT expert"}
+%{name: new_name} = y
+new_name
+```
+
+5\. Use an appropriate function from the `Map` module to change the name from "Fred" to "Eelke"
+
+```elixir
+y = Map.put(y, :name, "Eelke")
+y[:name]
+```
+
+## Complex Pattern Matching
+
+The struct in the code block below is from a real Phoenix application with minor modifications to allow it to be used in Livebook. Complete the following problems related to this struct. Remember that in Livebook, the cells following a cell have access to the variables in prior cells so that you do not need to cut and paste the struct for each problem.
+
+```elixir
+socket = %{
+  id: "phx-F0JQW5smPUxCeAGJ",
+  endpoint: MaterialUploadWeb.Endpoint,
+  view: MaterialUploadWeb.CSVLive.Index,
+  parent_pid: nil,
+  root_pid: 111,
+  router: "a router",
+  assigns: %{
+    __changed__: %{},
+    action: :new,
+    changeset: "changeset",
+    data: "some data",
+    csv: %{
+      id: 100,
+      rows: nil,
+      inserted_at: nil,
+      updated_at: nil
+    },
+    flash: %{},
+    id: :new,
+    myself: "me",
+    navigate: "/csvs",
+    title: "New Csv",
+    uploads: %{
+      name: "csv_file",
+      max_entries: 1,
+      max_file_size: 8_000_000,
+      entries: [
+        %{
+          progress: 100,
+          preflighted?: true,
+          upload_config: :csv_file,
+          upload_ref: "phx-F0JQW_ZlHRye0wGp",
+          ref: "0",
+          uuid: "ccfa14d4-09c3-4faf-84b7-37545a14274d",
+          valid?: true,
+          done?: true,
+          cancelled?: false,
+          client_name: "materials.csv",
+          client_relative_path: "",
+          client_size: 724,
+          client_type: "text/csv",
+          client_last_modified: 1_675_711_864_050
+        }
+      ],
+      accept: ".csv",
+      ref: "phx-F0JQW_ZlHRye0wGp",
+      errors: [],
+      auto_upload?: false,
+      progress_event: nil
+    }
+  }
+}
+```
+
+6a) Use pattern matching to extract and print the id of the csv in the assigns section.
+
+```elixir
+# wasnt sure which was the correct one you would want 
+# and didnt want to loose points: Here are the 2:
+%{id: csv_id} = socket.assigns.csv
+csv_id
+```
+
+```elixir
+y = socket[:assigns][:csv]
+%{id: csv_id} = y
+csv_id
+```
+
+6b) Use pattern matching (and other techniques if needed) to extract the client name in the first entry under the entries key.
+
+```elixir
+y = socket[:assigns][:uploads][:entries]
+[head | tail] = y
+%{client_name: name} = head
+name
+```
