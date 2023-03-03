@@ -8,12 +8,14 @@ defmodule HtmlDemo.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Ecto repository
-      HtmlDemo.Repo,
       # Start the Telemetry supervisor
       HtmlDemoWeb.Telemetry,
+      # Start the Ecto repository
+      HtmlDemo.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: HtmlDemo.PubSub},
+      # Start Finch
+      {Finch, name: HtmlDemo.Finch},
       # Start the Endpoint (http/https)
       HtmlDemoWeb.Endpoint
       # Start a worker by calling: HtmlDemo.Worker.start_link(arg)

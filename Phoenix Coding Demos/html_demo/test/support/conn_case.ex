@@ -19,15 +19,15 @@ defmodule HtmlDemoWeb.ConnCase do
 
   using do
     quote do
+      # The default endpoint for testing
+      @endpoint HtmlDemoWeb.Endpoint
+
+      use HtmlDemoWeb, :verified_routes
+
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import HtmlDemoWeb.ConnCase
-
-      alias HtmlDemoWeb.Router.Helpers, as: Routes
-
-      # The default endpoint for testing
-      @endpoint HtmlDemoWeb.Endpoint
     end
   end
 

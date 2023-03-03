@@ -17,14 +17,17 @@ config :html_demo, HtmlDemo.Repo,
 # you can enable the server option below.
 config :html_demo, HtmlDemoWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "XwzPGEOpiwhvC3Z3S78h1ODtQflT9H6EMER/JDE3ySc/SodJvrcfAZ5z9K6qP7fx",
+  secret_key_base: "JHViNaLMB5y1d7fEZN+zLcLeXofjWXEqgX9J9lGTmbdxqKzGb/+uBdRAFdag/ne+",
   server: false
 
 # In test we don't send emails.
 config :html_demo, HtmlDemo.Mailer, adapter: Swoosh.Adapters.Test
 
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
+
 # Print only warnings and errors during test
-config :logger, level: :warn
+config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
