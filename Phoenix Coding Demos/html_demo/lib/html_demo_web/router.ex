@@ -16,6 +16,7 @@ defmodule HtmlDemoWeb.Router do
 
   scope "/", HtmlDemoWeb do
     pipe_through(:browser)
+    get("/test", ListController, :test)
     get("/list", ListController, :index)
     get("/", PageController, :home)
   end
