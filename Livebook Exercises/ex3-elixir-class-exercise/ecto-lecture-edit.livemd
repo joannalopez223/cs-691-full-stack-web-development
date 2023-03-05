@@ -1,0 +1,156 @@
+# Intro to Ecto
+
+```elixir
+Mix.install([
+  {:kino_db, "~> 0.2.1"},
+  {:postgrex, "~> 0.16.3"},
+  {:ecto, "~> 3.7"},
+  {:ecto_sql, ">= 3.9.2"}
+])
+```
+
+## Introduction
+
+This worksheet allows us to explore Ecto and SQL access methods for databases.
+Ecto documentation can be found here: https://hexdocs.pm/ecto/Ecto.html
+The examples included here are _schemaless_, in that we are working outside of a Phoenix application and there are no schema modules that correspond to database tables. You may find this article of use: https://github.com/elixir-ecto/ecto/blob/master/guides/howtos/Schemaless%20queries.md
+
+This worksheet requires that you have a Postgresql database with a database named `ecto_worksheet_dev` that has one table called `users`. The `users` table should have three fields: `id`, `name`, and `title`. To create the database and required tables,
+
+* create a Phoenix application called `ecto_worksheet`
+* run the following commands
+  * `mix ecto.create`
+  * `mix phx.gen.context Accounts User users name:string title:string`
+    * _Notice that you do **NOT** explicitly create the `id`: Phoenix/Ecto does that for you_
+* Add the Faker library to the deps section of mix.exs, and do `deps.get`
+* Modify the `seeds.exs` file to use the Faker library to generate data for the application. The code will be _almost_ identical to that used in the video I provided earlier.
+* Run the seeds file to generate data.
+
+## Accessing Data using SQL
+
+This cell establishes the connection to the database.
+
+<!-- livebook:{"attrs":{"database":"ecto_worksheet_dev","hostname":"localhost","password_secret":"PASSWORD","port":5432,"type":"postgres","use_ipv6":false,"username":"postgres","variable":"conn"},"chunks":null,"kind":"Elixir.KinoDB.ConnectionCell","livebook_object":"smart_cell"} -->
+
+```elixir
+opts = [
+  hostname: "localhost",
+  port: 5432,
+  username: "postgres",
+  password: System.fetch_env!("LB_PASSWORD"),
+  database: "ecto_worksheet_dev"
+]
+
+{:ok, conn} = Kino.start_child({Postgrex, opts})
+```
+
+<!-- livebook:{"attrs":{"cache_query":true,"connection":{"type":"postgres","variable":"conn"},"query":"select * from users","result_variable":"result2","timeout":null},"chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result2 = Postgrex.query!(conn, "select * from users", [])
+```
+
+## Accessing Data with Ecto
+
+This code configures the Ecto Repo for the database we created previously.
+
+```elixir
+defmodule MyApp.MyRepo do
+  use Ecto.Repo,
+    otp_app: :my_app,
+    adapter: Ecto.Adapters.Postgres
+
+  def init(_context, _config) do
+    {:ok,
+     [
+       database: "ecto_worksheet_dev",
+       username: "postgres",
+       password: "postgres",
+       hostname: "localhost",
+       url: "ecto://postgres:postgres@localhost:5432/ecto_worksheet_dev",
+       telemetry_prefix: [:my_app, :repo]
+     ]}
+  end
+end
+```
+
+We have to start the GenServer that is at the heart of the Ecto repo module. More on what this means later in the semester.
+
+```elixir
+MyApp.MyRepo.start_link()
+```
+
+```elixir
+# we do not want to have to type the entire name!
+alias MyApp.MyRepo
+# import the query module from Ecto
+import Ecto.Query
+```
+
+Let's do the same query as above using Ecto
+
+```elixir
+query =
+  from(u in "users",
+    select: [:id, :name, :title, :inserted_at, :updated_at],
+    where: like(u.name, "L%")
+  )
+
+MyRepo.all(query)
+```
+
+**Exercise**
+
+a) Using a smart block, write a query in SQL that will return just the name of the first 10 users in the database.
+
+<!-- livebook:{"attrs":{"cache_query":true,"connection":{"type":"postgres","variable":"conn"},"query":"select name from users limit 10","result_variable":"result3","timeout":null},"chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result3 = Postgrex.query!(conn, "select name from users limit 10", [])
+```
+
+b) Write the ecto equivalent of the query above.
+
+```elixir
+query = from(u in "users", select: [:id, :name, :title], limit: 10)
+
+MyRepo.all(query)
+```
+
+c) Write a SQL query to insert a record into the database, where the name is "Buster Keaton" and title is "Actor". HINT: When the table was generated, inserted_at and updated_at were added automatically as columns. You have to come up with a way to generate the data for these fields.
+
+<!-- livebook:{"attrs":{"cache_query":true,"connection":{"type":"postgres","variable":"conn"},"query":"insert into users(name, title, inserted_at, updated_at) values ('Buster Keaton', 'Actor', NOW()::timestamp, NOW()::timestamp);\n/*whoops I accidentally added two here- shouldnt have added if its duplicate names...LOL*/","result_variable":"result5","timeout":null},"chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result5 =
+  Postgrex.query!(
+    conn,
+    """
+    insert into users(name, title, inserted_at, updated_at) values ('Buster Keaton', 'Actor', NOW()::timestamp, NOW()::timestamp);
+    /*whoops I accidentally added two here- shouldnt have added if its duplicate names...LOL*/
+    """,
+    []
+  )
+```
+
+<!-- livebook:{"attrs":{"cache_query":true,"connection":{"type":"postgres","variable":"conn"},"query":"select * from users where name='Buster Keaton'","result_variable":"result7","timeout":null},"chunks":null,"kind":"Elixir.KinoDB.SQLCell","livebook_object":"smart_cell"} -->
+
+```elixir
+result7 = Postgrex.query!(conn, "select * from users where name='Buster Keaton'", [])
+```
+
+d) Use Ecto to insert the same data. You will need to use the `insert_all` method in Ecto. See the link on schemaless operations at the top of the page.
+
+```elixir
+MyRepo.insert_all(
+  "users",
+  [
+    [
+      name: "Buster Keaton",
+      title: "Actor",
+      inserted_at: DateTime.utc_now(),
+      updated_at: DateTime.utc_now()
+    ]
+  ]
+)
+```
